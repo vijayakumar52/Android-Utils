@@ -10,8 +10,6 @@ import android.view.WindowManager;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.zoho.writer.editor.CustomProgressDialog;
-import com.zoho.writer.editor.R;
 
 public class DialogUtils {
     static DialogUtils dialogUtils = new DialogUtils();

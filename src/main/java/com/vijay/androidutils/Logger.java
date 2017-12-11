@@ -1,4 +1,4 @@
-package com.vijay.locationtracker;
+package com.vijay.androidutils;
 
 /**
  * Created by vijay-3593 on 19/11/17.
