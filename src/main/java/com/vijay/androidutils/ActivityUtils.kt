@@ -7,9 +7,10 @@ import android.view.View
 /**
  * Created by vijay-3593 on 24/12/17.
  */
-class ActivityUtils {
-    fun <T : View> Activity.bind(@IdRes res: Int): T {
+object ActivityUtils {
+    fun <T : View> bind(activity: Activity, @IdRes res: Int): T {
         @Suppress("UNCHECKED_CAST")
-        return findViewById(res) as T
+        return activity.findViewById(res) as T
     }
+
 }

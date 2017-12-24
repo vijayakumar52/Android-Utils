@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Android Utils</string>
+    <string name="ui_notification_default">Default</string>
+    <string name="ui_notification_low_priority">Low priority</string>
 </resources>
