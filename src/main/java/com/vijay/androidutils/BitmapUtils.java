@@ -1,7 +1,9 @@
 package com.vijay.androidutils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -78,48 +80,192 @@ public class BitmapUtils {
         return inputstream;
     }
 
+    public static Bitmap getDownScaledImage(String filePath, int targetW, int targetH) {
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bitmapOptions = getBitmapOptions(filePath);
+        int photoW = bitmapOptions.outWidth;
+        int photoH = bitmapOptions.outHeight;
 
+        // Determine how much to scale down the image
+        int scaleFactor = calculateInSampleSize(photoW, photoH, targetW, targetH);
 
-    public static Bitmap scaleDownBitmap(Context ctx, Bitmap source, int newHeight) {
-        final float densityMultiplier = getDensityMultiplier(ctx);
+        // Decode the image file into a Bitmap sized to fill the View
+        bitmapOptions.inJustDecodeBounds = false;
+        bitmapOptions.inSampleSize = scaleFactor;
 
-        // Log.v( TAG, "#scaleDownBitmap Original w: " + source.getWidth() + " h: " +
-        // source.getHeight() );
-
-        int h = (int) (newHeight * densityMultiplier);
-        int w = (int) (h * source.getWidth() / ((double) source.getHeight()));
-
-        // Log.v( TAG, "#scaleDownBitmap Computed w: " + w + " h: " + h );
-
-        Bitmap photo = Bitmap.createScaledBitmap(source, w, h, true);
-
-        // Log.v( TAG, "#scaleDownBitmap Final w: " + w + " h: " + h );
-
-        return photo;
+        return getBitmap(filePath, bitmapOptions);
     }
 
-    private static float getDensityMultiplier(Context context) {
-        return context.getResources().getDisplayMetrics().density;
+    public static Bitmap getDownScaledImage(Context context, int resourceId, int targetW, int targetH) {
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bitmapOptions = getBitmapOptions(context, resourceId);
+        int photoW = bitmapOptions.outWidth;
+        int photoH = bitmapOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = calculateInSampleSize(photoW, photoH, targetW, targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bitmapOptions.inJustDecodeBounds = false;
+        bitmapOptions.inSampleSize = scaleFactor;
+
+        return getBitmap(context, resourceId, bitmapOptions);
     }
 
-    public static Bitmap scaleBitmap(Context ctx, Bitmap source, int newHeight) {
+    public static Bitmap getDownScaledImage(Context context, Uri uri, int targetW, int targetH) {
+        Bitmap bitmap = null;
+        try {
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options bitmapOptions = getBitmapOptions(context, uri);
+            int photoW = bitmapOptions.outWidth;
+            int photoH = bitmapOptions.outHeight;
 
-        // Log.v( TAG, "#scaleDownBitmap Original w: " + source.getWidth() + " h: " +
-        // source.getHeight() );
+            // Determine how much to scale down the image
+            int scaleFactor = calculateInSampleSize(photoW, photoH, targetW, targetH);
 
-        int w = (int) (newHeight * source.getWidth() / ((double) source.getHeight()));
+            // Decode the image file into a Bitmap sized to fill the View
+            bitmapOptions.inJustDecodeBounds = false;
+            bitmapOptions.inSampleSize = scaleFactor;
 
-        // Log.v( TAG, "#scaleDownBitmap Computed w: " + w + " h: " + newHeight );
-
-        Bitmap photo = Bitmap.createScaledBitmap(source, w, newHeight, true);
-
-        // Log.v( TAG, "#scaleDownBitmap Final w: " + w + " h: " + newHeight );
-
-        return photo;
+            bitmap = getBitmap(context, uri, bitmapOptions);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
     }
 
-    public static Bitmap scaleDownBitmap(Context ctx, Uri uri, int newHeight) throws FileNotFoundException, IOException {
-        Bitmap original = Media.getBitmap(ctx.getContentResolver(), uri);
-        return scaleBitmap(ctx, original, newHeight);
+    public static Bitmap getDownScaledImage(byte[] imageByteArray, int targetW, int targetH) {
+        BitmapFactory.Options bitmapOptions = getBitmapOptions(imageByteArray);
+        int photoW = bitmapOptions.outWidth;
+        int photoH = bitmapOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = calculateInSampleSize(photoW, photoH, targetW, targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bitmapOptions.inJustDecodeBounds = false;
+        bitmapOptions.inSampleSize = scaleFactor;
+
+        return getBitmap(imageByteArray, bitmapOptions);
     }
+
+
+    private static BitmapFactory.Options getBitmapOptions(Context activity, Uri uri) throws FileNotFoundException {
+        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+
+        bitmapOptions.inJustDecodeBounds = true;
+        String scheme = uri.getScheme();
+        if ("content".equals(scheme)) { //No i18N
+            BitmapFactory.decodeStream(activity.getContentResolver().openInputStream(uri), null, bitmapOptions);
+        } else if ("file".equals(scheme)) { //No i18N
+            BitmapFactory.decodeFile(AndroidUtil.getPath(activity, uri), bitmapOptions);
+        }
+        return bitmapOptions;
+    }
+
+    private static BitmapFactory.Options getBitmapOptions(String filePath) {
+        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+
+        bitmapOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, bitmapOptions);
+        return bitmapOptions;
+    }
+
+    private static BitmapFactory.Options getBitmapOptions(byte[] imageByteArray) {
+        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+
+        bitmapOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.length, bitmapOptions);
+        return bitmapOptions;
+    }
+
+    private static BitmapFactory.Options getBitmapOptions(Context context, int resourceId) {
+        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+
+        bitmapOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(context.getResources(),
+                resourceId, bitmapOptions);
+        return bitmapOptions;
+    }
+
+
+    private static Bitmap getBitmap(Context activity, Uri uri, BitmapFactory.Options bitmapOptions) throws FileNotFoundException {
+        String scheme = uri.getScheme();
+        Bitmap bitmap = null;
+        if ("content".equals(scheme)) { //No i18N
+            bitmap = BitmapFactory.decodeStream(activity.getContentResolver().openInputStream(uri), null, bitmapOptions);
+        } else if ("file".equals(scheme)) { //No i18N
+            bitmap = BitmapFactory.decodeFile(AndroidUtil.getPath(activity, uri), bitmapOptions);
+        }
+        return bitmap;
+    }
+
+    private static Bitmap getBitmap(String filePath, BitmapFactory.Options bitmapOptions) {
+
+        return BitmapFactory.decodeFile(filePath, bitmapOptions);
+    }
+
+    private static Bitmap getBitmap(byte[] imageByteArray, BitmapFactory.Options bitmapOptions) {
+
+        return BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.length, bitmapOptions);
+    }
+
+    private static Bitmap getBitmap(Context context, int resourceId, BitmapFactory.Options bitmapOptions) {
+
+        return BitmapFactory.decodeResource(context.getResources(), resourceId, bitmapOptions);
+    }
+
+
+    public static Bitmap getBitmap(Context activity, Uri uri) {
+        String scheme = uri.getScheme();
+        Bitmap bitmap = null;
+        try {
+            if ("content".equals(scheme)) { //No i18N
+                bitmap = BitmapFactory.decodeStream(activity.getContentResolver().openInputStream(uri));
+            } else if ("file".equals(scheme)) { //No i18N
+                bitmap = BitmapFactory.decodeFile(AndroidUtil.getPath(activity, uri));
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
+    public static int calculateInSampleSize(int imageWidth, int imageHeight, int reqWidth, int reqHeight) {
+
+        int inSampleSize = 1;
+        if (imageWidth > reqHeight || imageHeight > reqWidth) {
+
+            // Calculate ratios of height and width to requested height and width
+            final int heightRatio = Math.round((float) imageHeight / (float) reqHeight);
+            final int widthRatio = Math.round((float) imageWidth / (float) reqWidth);
+
+            // Choose the smallest ratio as inSampleSize value, this will guarantee
+            // a final image with both dimensions larger than or equal to the
+            // requested height and width.
+            inSampleSize = heightRatio > widthRatio ? heightRatio : widthRatio;
+        }
+        return inSampleSize;
+    }
+
+    public static Bitmap getBitmap(String filePath) {
+
+        return BitmapFactory.decodeFile(filePath);
+    }
+
+    public static Bitmap getBitmap(byte[] imageByteArray) {
+
+        return BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.length);
+    }
+
+    public static Bitmap getBitmap(Context context, int resourceId) {
+
+        return BitmapFactory.decodeResource(context.getResources(), resourceId);
+    }
+
+
+    public static Bitmap getCroppedImage(Bitmap bitmap, int width, int height) {
+        return Bitmap.createBitmap(bitmap, 0, 0, width, height);
+    }
+
 }
