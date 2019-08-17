@@ -1,13 +1,11 @@
 /* $Id$ */
 package com.vijay.androidutils.network
 
-import com.vijay.androidutils.AsyncTaskListener
-
 class RequestData(requestDataBuilder: RequestDataBuilder) {
     val url = requestDataBuilder.url
     val postParameters = requestDataBuilder.postParameters
     val returnBytes = requestDataBuilder.returnBytes
-    @StringRequest.Companion.Method
+    @NetworkRequest.Companion.Method
     val method = requestDataBuilder.method
     val extras = requestDataBuilder.extras
     val progressView = requestDataBuilder.progressView
@@ -18,8 +16,8 @@ class RequestData(requestDataBuilder: RequestDataBuilder) {
     class RequestDataBuilder(val url: String) {
         internal var postParameters: RequestPostParams<String, Any>? = null
         internal var returnBytes = true
-        @StringRequest.Companion.Method
-        internal var method = StringRequest.GET
+        @NetworkRequest.Companion.Method
+        internal var method = NetworkRequest.GET
         internal var extras: Any? = null
         internal var progressView: NetworkProgressView? = null
         internal var requestCallback: AsyncTaskListener? = null
@@ -36,7 +34,7 @@ class RequestData(requestDataBuilder: RequestDataBuilder) {
             return this
         }
 
-        fun setRequestMethod(@StringRequest.Companion.Method method: String): RequestDataBuilder {
+        fun setRequestMethod(@NetworkRequest.Companion.Method method: String): RequestDataBuilder {
             this.method = method
             return this
         }

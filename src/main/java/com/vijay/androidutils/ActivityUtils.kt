@@ -1,8 +1,8 @@
 package com.vijay.androidutils
 
 import android.app.Activity
-import android.support.annotation.IdRes
 import android.view.View
+import androidx.annotation.IdRes
 
 /**
  * Created by vijay-3593 on 24/12/17.

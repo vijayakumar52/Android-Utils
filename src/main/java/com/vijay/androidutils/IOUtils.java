@@ -1,8 +1,8 @@
 package com.vijay.androidutils;
 
 import android.content.Context;
-import android.support.annotation.RawRes;
-import android.util.Log;
+
+import androidx.annotation.RawRes;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;

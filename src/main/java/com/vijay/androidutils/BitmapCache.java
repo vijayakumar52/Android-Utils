@@ -5,7 +5,8 @@ package com.vijay.androidutils;
  */
 
 import android.graphics.Bitmap;
-import android.support.v4.util.LruCache;
+
+import androidx.collection.LruCache;
 
 public class BitmapCache extends LruCache<String, Bitmap> {
     public static int getDefaultLruCacheSize() {

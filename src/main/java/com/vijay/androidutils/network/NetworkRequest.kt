@@ -4,8 +4,8 @@ package com.vijay.androidutils.network
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.support.annotation.StringDef
 import android.webkit.MimeTypeMap
+import androidx.annotation.StringDef
 import com.blankj.utilcode.util.FileUtils
 import com.vijay.androidutils.BuildConfig
 import com.vijay.androidutils.Logger
@@ -19,8 +19,8 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 
-class StringRequest(private val requestData: RequestData, private val eventListener: NetworkEventListener?) {
-    internal var call: Call? = null
+class NetworkRequest(private val requestData: RequestData, private val eventListener: NetworkEventListener?) {
+    private var call: Call? = null
     var errorObject = ErrorObject()
 
     @Method
@@ -111,12 +111,6 @@ class StringRequest(private val requestData: RequestData, private val eventListe
                 processCallback(null, errorObject)
             }
         })
-    }
-
-    fun cancel() {
-        if (call != null) {
-            call!!.cancel()
-        }
     }
 
     fun processCallback(response: Any?, errorObject: ErrorObject) {

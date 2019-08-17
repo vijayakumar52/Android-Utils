@@ -19,7 +19,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:design:26.1.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'com.afollestad.material-dialogs:core:0.9.4.5'
     implementation 'com.squareup.okhttp3:okhttp:3.14.2'
     implementation("com.squareup.okhttp3:logging-interceptor:3.14.2")
@@ -29,6 +29,7 @@ dependencies {
     api "org.apache.commons:commons-collections4:4.1"
     implementation "com.blankj:utilcode:1.25.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation  "com.google.android.material:material:1.1.0-alpha09"
 
 
 }

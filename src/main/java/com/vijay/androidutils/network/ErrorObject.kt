@@ -1,7 +1,7 @@
 /* $Id$ */
 package com.vijay.androidutils.network
 
-import android.support.annotation.StringDef
+import androidx.annotation.StringDef
 
 class ErrorObject {
 

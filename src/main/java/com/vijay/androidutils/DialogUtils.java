@@ -3,13 +3,14 @@ package com.vijay.androidutils;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TextInputLayout;
 import android.view.View;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class DialogUtils {
     static DialogUtils dialogUtils = new DialogUtils();
