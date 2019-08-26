@@ -234,13 +234,13 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
         @StringDef(GET, POST, DELETE)
         @kotlin.annotation.Retention(AnnotationRetention.SOURCE)
         annotation class Method
-    }
 
-    fun addQueryParams(url: Uri.Builder, queryParams: HashMap<String, String>?) {
-        if (queryParams != null && queryParams.size > 0) {
-            val keyPairs = queryParams.entries
-            for ((key, value) in keyPairs) {
-                url.appendQueryParameter(key, value)
+        fun addQueryParams(url: Uri.Builder, queryParams: HashMap<String, String>?) {
+            if (queryParams != null && queryParams.size > 0) {
+                val keyPairs = queryParams.entries
+                for ((key, value) in keyPairs) {
+                    url.appendQueryParameter(key, value)
+                }
             }
         }
     }

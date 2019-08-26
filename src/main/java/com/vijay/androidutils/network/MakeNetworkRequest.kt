@@ -4,7 +4,7 @@ package com.vijay.androidutils.network
 import com.blankj.utilcode.util.NetworkUtils
 import com.vijay.androidutils.Logger
 
-open abstract class MakeNetworkRequest(private val requestData: RequestData) : NetworkEventListener {
+class MakeNetworkRequest(private val requestData: RequestData) : NetworkEventListener {
     val authTokenHandler = requestData.authTokenHandler
     val who = requestData.who
     val progressView = requestData.progressView
@@ -72,7 +72,9 @@ open abstract class MakeNetworkRequest(private val requestData: RequestData) : N
         handleError(errorObject)
     }
 
-    abstract fun handleError(errorObject: ErrorObject)
+    fun handleError(errorObject: ErrorObject) {
+        //Handle common error
+    }
 
 
     private fun addToQueue() {
