@@ -1,0 +1,13 @@
+package com.vijay.androidutils
+
+interface PreferenceAPI {
+    fun getString(key: String): String?
+    fun putString(key: String, value: String)
+
+    fun getInt(key: String): Int
+    fun putInt(key: String, value: Int)
+
+    fun getLong(key: String): Long
+    fun putLong(key: String, value: Long)
+
+}

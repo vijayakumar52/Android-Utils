@@ -11,6 +11,7 @@ import com.vijay.androidutils.BuildConfig
 import com.vijay.androidutils.Logger
 import io.reactivex.android.schedulers.AndroidSchedulers
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
 import java.io.IOException
@@ -53,7 +54,7 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
             requestBuilder.get()
         } else if (POST == method) {
             //Post params must be not null. Throw exception otherwise.
-            requestBuilder.post(postParams)
+            requestBuilder.post(postParams!!)
         } else if (DELETE == method) {
             if (postParams != null) {
                 requestBuilder.delete(postParams)
@@ -66,7 +67,7 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
         val request = requestBuilder.build()
         call = getOkHttpClient().newCall(request)
         call!!.enqueue(object : Callback {
-            override fun onFailure(call: Call?, e: IOException?) {
+            override fun onFailure(call: Call, e: IOException) {
                 if (e is SocketTimeoutException) {
                     errorObject = ErrorObject(ErrorObject.TIMEOUT)
                 } else if (e is IOException) {
@@ -75,10 +76,10 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
                 processCallback(null, errorObject)
             }
 
-            override fun onResponse(call: Call?, response: Response?) {
+            override fun onResponse(call: Call, response: Response) {
                 var networkResponse: Any? = null
-                responseCode = response!!.code()
-                val responseStream = response.body()!!.source()
+                responseCode = response!!.code
+                val responseStream = response.body!!.source()
 
                 var errorResponse = ""
                 try {
@@ -116,7 +117,7 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
     fun processCallback(response: Any?, errorObject: ErrorObject) {
         AndroidSchedulers.mainThread().scheduleDirect {
             val httpClient = getOkHttpClient()
-            Logger.d("OkHttp", "Total requests :${httpClient.dispatcher().runningCallsCount() + httpClient.dispatcher().queuedCallsCount()}")
+            Logger.d("OkHttp", "Total requests :${httpClient.dispatcher.runningCallsCount() + httpClient.dispatcher.queuedCallsCount()}")
             if (response == null) {
                 eventListener?.onError(errorObject)
             } else {
@@ -155,7 +156,7 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
                     val fileExtension = FileUtils.getFileExtension(value.path)
                     var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
                     mimeType = mimeType ?: "application/pdf" //No i18N
-                    requestBody.addFormDataPart(key, value.name, RequestBody.create(MediaType.parse(mimeType), value))
+                    requestBody.addFormDataPart(key, value.name, RequestBody.create(mimeType.toMediaTypeOrNull(), value))
                 } else {
                     requestBody.addFormDataPart(key, value.toString())
                 }
@@ -185,31 +186,6 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
         const val DELETE = "delete" //No i18N
 
         private var client: OkHttpClient? = null
-        fun enableTls12OnPreLollipop(client: OkHttpClient.Builder): OkHttpClient.Builder {
-            if (Build.VERSION.SDK_INT in 16..20) {
-                try {
-                    val sc = SSLContext.getInstance("TLSv1.2") //No i18N
-                    sc.init(null, null, null)
-                    client.sslSocketFactory(Tls12SocketFactory(sc.socketFactory))
-
-                    val cs = ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-                            .tlsVersions(TlsVersion.TLS_1_2)
-                            .build()
-
-                    val specs = ArrayList<ConnectionSpec>()
-                    specs.add(cs)
-                    specs.add(ConnectionSpec.COMPATIBLE_TLS)
-                    specs.add(ConnectionSpec.CLEARTEXT)
-
-                    client.connectionSpecs(specs)
-                } catch (exc: Exception) {
-
-                }
-
-            }
-
-            return client
-        }
 
         private fun getOkHttpClient(): OkHttpClient {
             if (client == null) {
@@ -225,7 +201,6 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
                     loggingInterceptor.redactHeader("Cookie")
                     clientBuilder.addInterceptor(loggingInterceptor)
                 }
-                client = enableTls12OnPreLollipop(clientBuilder).build()
             }
 
             return client!!
