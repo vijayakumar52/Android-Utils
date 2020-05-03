@@ -10,4 +10,6 @@ interface PreferenceAPI {
     fun getLong(key: String): Long
     fun putLong(key: String, value: Long)
 
+    fun getBoolean(key: String): Boolean
+    fun putBoolean(key: String, value: Boolean)
 }

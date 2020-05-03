@@ -30,4 +30,11 @@ class PreferenceAPIImpl(val context: Context) : PreferenceAPI {
         sharedPreference.edit().putLong(key, value).apply()
     }
 
+    override fun getBoolean(key: String): Boolean {
+        return sharedPreference.getBoolean(key, false)
+    }
+
+    override fun putBoolean(key: String, value: Boolean) {
+        sharedPreference.edit().putBoolean(key, value).apply()
+    }
 }
