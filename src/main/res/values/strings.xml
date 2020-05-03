@@ -2,4 +2,5 @@
     <string name="app_name">Android Utils</string>
     <string name="ui_notification_default">Default</string>
     <string name="ui_notification_low_priority">Low priority</string>
+    <string name="get_started">Get Started</string>
 </resources>

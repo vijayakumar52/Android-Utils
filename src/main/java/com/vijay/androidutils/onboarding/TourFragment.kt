@@ -1,5 +1,6 @@
 package com.vijay.androidutils.onboarding
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
@@ -7,16 +8,27 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 import com.vijay.androidutils.R
+import java.lang.IllegalStateException
 
 class TourFragment : Fragment() {
     private var selected: Int = -1
     private var unselected: Int = -1
     lateinit var layoutIDs: IntArray
+    private var tourListener: TourListener? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is TourListener) {
+            tourListener = context
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +76,10 @@ class TourFragment : Fragment() {
 
             }
         })
+
+        view.findViewById<TextView>(R.id.tour_get_started).setOnClickListener {
+            tourListener?.onGetStarted()
+        }
         setIndicator(0)
     }
 
@@ -85,16 +101,32 @@ class TourFragment : Fragment() {
         }
     }
 
+    interface TourListener {
+        fun onGetStarted()
+    }
+
     companion object {
         const val LAYOUT_IDS = "layoutIDs"
-        const val POSITION = "position" //No i18N
 
-        fun openFragment(activity: AppCompatActivity, layoutIDs: IntArray) {
+        fun openFragment(
+            activity: AppCompatActivity,
+            layoutIDs: IntArray
+        ) {
             val fm = activity.supportFragmentManager
             val ft = fm.beginTransaction()
             val fragment = TourFragment()
-            fragment.arguments = Bundle().apply { putIntArray(LAYOUT_IDS, layoutIDs) }
-            ft.replace(android.R.id.content, fragment).commit()
+            fragment.arguments = Bundle().apply {
+                putIntArray(LAYOUT_IDS, layoutIDs)
+            }
+            ft.replace(android.R.id.content, fragment, "TOUR_FRAGMENT").commit()
+        }
+
+        fun removeFragment(activity: AppCompatActivity) {
+            val fm = activity.supportFragmentManager
+            val fragment = fm.findFragmentByTag("TOUR_FRAGMENT")
+            if (fragment != null) {
+                fm.beginTransaction().remove(fragment).commitAllowingStateLoss()
+            }
         }
     }
 }
