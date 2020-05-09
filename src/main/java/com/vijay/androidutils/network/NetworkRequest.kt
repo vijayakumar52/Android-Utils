@@ -9,28 +9,32 @@ import androidx.annotation.StringDef
 import com.blankj.utilcode.util.FileUtils
 import com.vijay.androidutils.BuildConfig
 import com.vijay.androidutils.Logger
-import io.reactivex.android.schedulers.AndroidSchedulers
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
-import java.io.IOException
-import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
 
-class NetworkRequest(private val requestData: RequestData, private val eventListener: NetworkEventListener?) {
-    private var call: Call? = null
-    var errorObject = ErrorObject()
+class NetworkRequest {
 
-    @Method
-    private var method = requestData.method
+    @Throws(Exception::class)
+    fun getString(requestData: RequestData): String {
+        return executeRequest(requestData, false) as String
+    }
 
-    fun executeRequest(oAuthToken: String?) {
-        eventListener?.onPreExecute()
+    @Throws(Exception::class)
+    fun getBytes(requestData: RequestData): ByteArray {
+        return executeRequest(requestData, true) as ByteArray
+    }
+
+    @Throws(Exception::class)
+    private fun executeRequest(requestData: RequestData, returnBytes: Boolean): Any {
         var responseCode = 0
-
+        val method = requestData.method
         var postParams: RequestBody? = null
         val postParameters = requestData.postParameters
         if (postParameters != null) {
@@ -39,10 +43,6 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
             }
         }
         val requestBuilder = Request.Builder()
-
-        if (oAuthToken != null && "" != oAuthToken) {
-            requestBuilder.addHeader("Authorization", "$oAuthToken") //No i18N
-        }
 
         var url = requestData.url
         if (GET == method) {
@@ -65,64 +65,34 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
         requestBuilder.url(url)
         requestBuilder.header("User-Agent", getUserAgent()) //No i18N
         val request = requestBuilder.build()
-        call = getOkHttpClient().newCall(request)
-        call!!.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                if (e is SocketTimeoutException) {
-                    errorObject = ErrorObject(ErrorObject.TIMEOUT)
-                } else if (e is IOException) {
-                    errorObject = ErrorObject(ErrorObject.TIMEOUT)
-                }
-                processCallback(null, errorObject)
-            }
+        val call = getOkHttpClient().newCall(request)
 
-            override fun onResponse(call: Call, response: Response) {
-                var networkResponse: Any? = null
-                responseCode = response!!.code
-                val responseStream = response.body!!.source()
+        try {
+            val response = call.execute()
+            var networkResponse: Any? = null
+            responseCode = response.code
+            val responseStream = response.body!!.source()
 
-                var errorResponse = ""
-                try {
-                    val returnBytes = requestData.returnBytes
-                    if (returnBytes) {
-                        networkResponse = responseStream.readByteArray()
-                    } else {
-                        networkResponse = responseStream.readUtf8()
-                    }
-
-                    if (responseCode == 200) {
-                        processCallback(networkResponse, errorObject)
-                        return
-                    }
-
-                    //Handling failure cases
-
-                    if (!returnBytes) {
-                        errorResponse = networkResponse as String
-                    } else {
-                        errorResponse = String((networkResponse as ByteArray?)!!)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                if (errorObject.reason == ErrorObject.UNKNOWN) {
-                    errorObject.extraData = errorResponse
-                }
-                processCallback(null, errorObject)
-            }
-        })
-    }
-
-    fun processCallback(response: Any?, errorObject: ErrorObject) {
-        AndroidSchedulers.mainThread().scheduleDirect {
-            val httpClient = getOkHttpClient()
-            Logger.d("OkHttp", "Total requests :${httpClient.dispatcher.runningCallsCount() + httpClient.dispatcher.queuedCallsCount()}")
-            if (response == null) {
-                eventListener?.onError(errorObject)
+            var errorResponse = ""
+            if (returnBytes) {
+                networkResponse = responseStream.readByteArray()
             } else {
-                eventListener?.onSuccess(response)
+                networkResponse = responseStream.readUtf8()
             }
+
+            if (responseCode == 200) {
+                return networkResponse
+            } else {
+                //Handling failure cases
+                errorResponse = if (!returnBytes) {
+                    networkResponse as String
+                } else {
+                    String((networkResponse as ByteArray?)!!)
+                }
+                throw Exception(errorResponse)
+            }
+        } catch (e: Exception) {
+            throw e
         }
     }
 
@@ -133,15 +103,16 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
         val appVersion = BuildConfig.VERSION_NAME
 
         val userAgent = StringBuilder()
-        userAgent.append("TrendingNow") //No i18N
+        userAgent.append("OkHttp") //No i18N
         try {
             userAgent.append("/").append(appVersion)
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
         }
 
-        userAgent.append("(").append("Android ").append(androidVersion).append("; ").append(deviceModel)
-                .append(")") //No i18N
+        userAgent.append("(").append("Android ").append(androidVersion).append("; ")
+            .append(deviceModel)
+            .append(")") //No i18N
         return userAgent.toString()
     }
 
@@ -154,9 +125,14 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
             for (value in allValues) {
                 if (value is File) {
                     val fileExtension = FileUtils.getFileExtension(value.path)
-                    var mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
+                    var mimeType =
+                        MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
                     mimeType = mimeType ?: "application/pdf" //No i18N
-                    requestBody.addFormDataPart(key, value.name, RequestBody.create(mimeType.toMediaTypeOrNull(), value))
+                    requestBody.addFormDataPart(
+                        key,
+                        value.name,
+                        RequestBody.create(mimeType.toMediaTypeOrNull(), value)
+                    )
                 } else {
                     requestBody.addFormDataPart(key, value.toString())
                 }
@@ -195,12 +171,19 @@ class NetworkRequest(private val requestData: RequestData, private val eventList
                 clientBuilder.writeTimeout(20, TimeUnit.SECONDS)
                 //Logging
                 if (BuildConfig.DEBUG) {
-                    val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { Logger.d("OkHttp", it) })
+                    val loggingInterceptor =
+                        HttpLoggingInterceptor(HttpLoggingInterceptor.Logger {
+                            Logger.d(
+                                "OkHttp",
+                                it
+                            )
+                        })
                     loggingInterceptor.level = HttpLoggingInterceptor.Level.BASIC
                     loggingInterceptor.redactHeader("Authorization")
                     loggingInterceptor.redactHeader("Cookie")
                     clientBuilder.addInterceptor(loggingInterceptor)
                 }
+                client = clientBuilder.build()
             }
 
             return client!!
