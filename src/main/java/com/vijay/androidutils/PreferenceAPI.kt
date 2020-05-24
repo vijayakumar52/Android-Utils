@@ -12,4 +12,5 @@ interface PreferenceAPI {
 
     fun getBoolean(key: String): Boolean
     fun putBoolean(key: String, value: Boolean)
+
 }
