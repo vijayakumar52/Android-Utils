@@ -33,6 +33,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.google.android.material:material:1.2.0-alpha06"
     api 'com.squareup.picasso:picasso:2.71828'
+    api 'com.greysonparrelli.permiso:permiso:0.3.0'
 
 }
 repositories {
